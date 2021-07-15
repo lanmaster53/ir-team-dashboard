@@ -54,26 +54,50 @@ Vue.component("team-card", {
                         <div class="m-2 px-4 py-2 bg-black border rounded flex-grow flex flex-col">
                             <div class="text-md font-bold">Incidents</div>
                             <hr class="m-1">
-                            <div>Driver: <span style="color: gold;">{{ team.driver.incident_count }}x</span></div>
-                            <div>Team: <span style="color: gold;">{{ team.car.incident_count }}x</span></div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Driver: </span>
+                                <span style="color: gold;">{{ team.driver.incident_count }}x</span>
+                            </div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Team: </span>
+                                <span style="color: gold;">{{ team.car.incident_count }}x</span>
+                            </div>
                         </div>
                         <div class="m-2 px-4 py-2 bg-black border rounded flex-grow flex flex-col">
                             <div class="text-md font-bold">Fuel</div>
                             <hr class="m-1">
-                            <div>Fuel Remaining: <span style="color: gold;">{{ team.telemetry.fuel_remain }}</span></div>
-                            <div>Fuel / Lap: <span style="color: gold;">{{ team.telemetry.fuel_burn_avg }}</span></div>
-                            <div>Laps Remaining: <span style="color: gold;">{{ team.telemetry.fuel_laps_remain }}</span></div>
-                            <div>Time Remaining:</div>
-                            <div><span style="color: gold;">{{ team.telemetry.fuel_time_remain }}</span></div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Remaining: </span>
+                                <span style="color: gold;">{{ team.telemetry.fuel_remain }}</span>
+                            </div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Usage: </span>
+                                <span style="color: gold;">{{ team.telemetry.fuel_burn_avg }}</span>
+                            </div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Laps Remain: </span>
+                                <span style="color: gold;">{{ team.telemetry.fuel_laps_remain }}</span>
+                            </div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Time Remain: </span>
+                                <span style="color: gold;">{{ team.telemetry.fuel_time_remain }}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="flex flex-col">
                         <div class="m-2 px-4 py-2 bg-black border rounded flex-grow flex flex-col">
-                            <div class="text-md font-bold">Session</div>
+                            <div class="text-md font-bold">Session - {{ team.session.type }}</div>
                             <hr class="m-1">
                             <div>Time Remaining:</div>
                             <div><span style="color: gold;">{{ team.session.time_remain }}</span></div>
-                            <div><span style="color: gold;">{{ team.telemetry.time_laps_remain }} Laps</span></div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Laps Remain: </span>
+                                <span style="color: gold;">{{ team.telemetry.time_laps_remain }}</span>
+                            </div>
+                            <div class="flex flex-wrap justify-between">
+                                <span class="mr-2">Laps Complete: </span>
+                                <span style="color: gold;">{{ team.telemetry.laps_completed }}</span>
+                            </div>
                         </div>
                         <div class="m-2 px-4 py-2 bg-black border rounded flex-grow flex flex-col">
                             <div class="text-md font-bold">Timing</div>

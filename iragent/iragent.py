@@ -91,6 +91,7 @@ def loop():
     fuel_burn_avg = (fuel_capacity_max - ir['FuelLevel']) / len(state.laps) if state.laps else 0
     fuel_laps_remain = ir['FuelLevel'] / fuel_burn_avg if fuel_burn_avg else 0
     fuel_time_remain = fuel_laps_remain * lap_time_avg
+    session = next(item for item in ir['SessionInfo']['Sessions'] if item['SessionNum'] == ir['SessionNum'])
 
     # build the data object for the server
     data = {
@@ -109,9 +110,11 @@ def loop():
         },
         'session': {
             'event': ir['WeekendInfo']['TrackDisplayName'],
+            'type': session['SessionType'],
             'time_remain': seconds_to_time_clock(ir['SessionTimeRemain'])
         },
         'telemetry': {
+            'laps_completed': ir['LapCompleted'],
             'avg_lap_time': seconds_to_time_lap(lap_time_avg),
             'last_lap_time': seconds_to_time_lap(ir['LapLastLapTime']),
             'best_lap_time': seconds_to_time_lap(ir['LapBestLapTime']),
