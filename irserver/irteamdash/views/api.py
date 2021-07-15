@@ -24,7 +24,7 @@ api.add_resource(TelemetryList, '/telemetry')
 
 @socketio.on('connect')
 def connect_handler():
-    emit('log', f"Socket connected.")
+    emit('log', 'Socket connected.')
 
 @socketio.on_error_default
 def default_error_handler(e):

@@ -18,6 +18,3 @@ RUN apk update &&\
     pip install --no-cache-dir -r REQUIREMENTS.txt &&\
     apk del $BUILD_DEPS &&\
     rm -rf /var/cache/apk/*
-
-# docker run --rm -it --name irteamdash -v $PWD:/irteamdash -p 80:5000 --entrypoint "/bin/sh" irteamdash
-# gunicorn --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 irteamdash.wsgi:app --error-logfile - --log-level DEBUG
