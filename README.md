@@ -30,7 +30,7 @@ $ docker run -d --rm --name irteamdash \
     -p 80:5000 \
     -e API_BASE_URL="http://34.75.132.75" \
     irteamdash \
-    gunicorn --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 irteamdash.wsgi:app --error-logfile /tmp/gunicorn-irteamdash.log --log-level DEBUG
+    gunicorn --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 irteamdash.wsgi:app --error-logfile gunicorn-irteamdash.log --log-level DEBUG
 ```
 
 Use the following command to attach to the container. A container cannot be detached from unless the container was created with the `-it` switch. If so, then the `ctrl-p` `ctrl-q` sequence will safely detach from the container without causing it to exit.
