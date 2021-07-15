@@ -1,0 +1,8 @@
+Flask
+flask-restful
+flask-cors
+Flask-SocketIO
+gunicorn
+eventlet==0.30.2
+python-engineio==3.13.2
+python-socketio==4.6.0

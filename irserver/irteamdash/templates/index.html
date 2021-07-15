@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>iRacing Team Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>html{visibility:hidden;opacity:0;}</style><!-- FOUC fix 1/2 -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,700" rel="stylesheet">
+    <style>html{visibility:visible;opacity:1;}</style><!-- FOUC fix 2/2 -->
+</head>
+<body class="bg-black text-white" style="font-family: 'Source Sans Pro', sans-serif;">
+    <div id="app">
+        <toasts></toasts>
+        <section class="w-full px-8 py-4">
+            <router-view></router-view>
+        </section>
+    </div>
+    <script>
+        const API_BASE_URL = "{{ config.API_BASE_URL }}";
+        const percentColors = [
+            { pct: 0.0, color: { r: 0xff, g: 0x00, b: 0 } },
+            { pct: 0.5, color: { r: 0xff, g: 0xff, b: 0 } },
+            { pct: 1.0, color: { r: 0x00, g: 0xff, b: 0 } }
+        ];
+    </script>
+    <script src="{{ url_for('static', filename='js/vue.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vue-router.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vuex.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.slim.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vue-socket.io-extended.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/toasts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/router.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

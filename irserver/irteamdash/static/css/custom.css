@@ -1,0 +1,41 @@
+.translate-x-0 {
+    transform: translateX(0);
+}
+
+.translate-x-36 {
+    transform: translateX(9rem);
+}
+
+.-translate-x-36 {
+    transform: translateX(-9rem);
+}
+
+.translate-x-40 {
+    transform: translateX(10rem);
+}
+
+.-translate-x-40 {
+    transform: translateX(-10rem);
+}
+
+.transition {
+    transition: all 0.3s ease-in;
+}
+
+.bg-black-opaque-80 {
+    /* Fallback for web browsers that doesn't support RGBa */
+    background: rgb(0, 0, 0);
+    /* RGBa opacity */
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.bg-red-opaque-95 {
+    /* Fallback for web browsers that doesn't support RGBa */
+    background: rgb(229, 62, 62);
+    /* RGBa opacity */
+    background: rgba(229, 62, 62, 0.95);
+}
+
+.shadow-10 {
+    box-shadow: 0 0 10px black;
+}
