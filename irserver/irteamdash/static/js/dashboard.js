@@ -126,7 +126,7 @@ Vue.component("tire-section", {
 
 Vue.component("tire-model", {
     props: {
-        wear: String,
+        wear: Number,
     },
     template: `
         <div class="w-2 h-6 mx-0.5" v-bind:style="{ backgroundColor: getColorForPercentage(parseFloat(wear)) }"></div>
