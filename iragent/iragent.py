@@ -4,16 +4,22 @@ from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from datetime import datetime, timedelta
+import argparse
 import irsdk
 import json
-import os
 import time
 import traceback
 
-server_url = os.environ.get('API_BASE_URL', 'http://127.0.0.1') + '/api/telemetry'
-polling_interval = os.environ.get('API_POLL_INT', 3) # in seconds
+parser = argparse.ArgumentParser()
+parser.add_argument("--url", "-u", help="server API URL", required=True)
+parser.add_argument("--int", "-i", help="telemetry polling interval", type=int, default=3)
+parser.add_argument("--data", "-d", help="telemetry test file", default=None)
+args = parser.parse_args()
 
-print(server_url)
+server_url = args.url + '/api/telemetry'
+polling_interval = args.int
+data_source = args.data
+print(f"Sending telemetry data to {server_url} every {polling_interval} seconds.")
 
 # this is our State class, with some helpful variables
 class State:
@@ -32,7 +38,7 @@ def check_iracing():
         # we are shutting down ir library (clearing all internal variables)
         ir.shutdown()
         print('irsdk disconnected')
-    elif not state.ir_connected and ir.startup() and ir.is_initialized and ir.is_connected:
+    elif not state.ir_connected and ir.startup(test_file=data_source) and ir.is_initialized and ir.is_connected:
         state.ir_connected = True
         print('irsdk connected')
 
@@ -126,10 +132,10 @@ def loop():
             'fuel_laps_remain': '{:.2f} Laps'.format(fuel_laps_remain),
             'fuel_time_remain': seconds_to_time_clock(fuel_time_remain).split('.')[0],
             'tire_wear': {
-                'fl': [ir['LFwearL'], ir['LFwearM'], ir['LFwearR']],
-                'fr': [ir['RFwearL'], ir['RFwearM'], ir['RFwearR']],
-                'rl': [ir['LRwearL'], ir['LRwearM'], ir['LRwearR']],
-                'rr': [ir['RRwearL'], ir['RRwearM'], ir['RRwearR']]
+                'fl': [round(ir['LFwearL'], 2), round(ir['LFwearM'], 2), round(ir['LFwearR'], 2)],
+                'fr': [round(ir['RFwearL'], 2), round(ir['RFwearM'], 2), round(ir['RFwearR'], 2)],
+                'rl': [round(ir['LRwearL'], 2), round(ir['LRwearM'], 2), round(ir['LRwearR'], 2)],
+                'rr': [round(ir['RRwearL'], 2), round(ir['RRwearM'], 2), round(ir['RRwearR'], 2)]
             }
         }
     }
