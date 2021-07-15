@@ -18,7 +18,7 @@
 7. Install dependencies.
     * `pip3 install -r REQUIREMENTS.txt`
 8. Set the proper environment variables.
-    * `set API_BASE_URL=http://34.75.132.75`
+    * `set API_BASE_URL=<server_url>`
 9. Run the agent.
     * `python iragent.py`
 
@@ -48,7 +48,7 @@ $ docker build --rm -t irteamdash .
 $ docker run -d --rm --name irteamdash \
     -v $PWD:/irteamdash \
     -p 80:5000 \
-    -e API_BASE_URL="http://34.75.132.75" \
+    -e API_BASE_URL="<server_url>" \
     irteamdash \
     gunicorn --bind 0.0.0.0:5000 --worker-class eventlet --workers 1 irteamdash.wsgi:app --error-logfile gunicorn-irteamdash.log --log-level DEBUG
 ```
@@ -56,5 +56,5 @@ $ docker run -d --rm --name irteamdash \
 Use the following command to attach to the container. A container cannot be detached from unless the container was created with the `-it` switch. If so, then the `ctrl-p` `ctrl-q` sequence will safely detach from the container without causing it to exit.
 
 ```
-$ docker attach accsm
+$ docker attach irteamdash
 ```
