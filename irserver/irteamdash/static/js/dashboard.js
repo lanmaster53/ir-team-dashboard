@@ -1,7 +1,6 @@
 var Dashboard = Vue.component('dashboard', {
     template: `
         <div class="flex flex-col">
-            <div class="w-full p-2 flex-grow text-4xl text-center font-bold">Team Dashboard</div>
             <div v-if="telemetry" class="flex flex-wrap justify-center">
                 <team-card v-for="(team, index) in telemetry" v-bind:key="index" v-bind:team="team"></team-card>
             </div>
@@ -115,7 +114,9 @@ Vue.component("tire-section", {
     template: `
         <div>
             <div>{{ label }}</div>
-            <div class="text-sm" style="color: gold;">{{ tire.join(" ") }}</div>
+            <div class="flex justify-center" style="color: gold;">
+                <span class="mx-0.5 text-sm" v-for="section in tire">{{ section*100 }}%</span>
+            </div>
             <div class="my-2 flex justify-center items-center">
                 <tire-model v-for="(wear, index) in tire" v-bind:key="index" v-bind:wear="wear"></tire-model>
             </div>
@@ -128,7 +129,7 @@ Vue.component("tire-model", {
         wear: String,
     },
     template: `
-        <div class="w-2 h-6 mx-0.5" v-bind:style="{ backgroundColor: getColorForPercentage(parseFloat(wear)/100) }"></div>
+        <div class="w-2 h-6 mx-0.5" v-bind:style="{ backgroundColor: getColorForPercentage(parseFloat(wear)) }"></div>
     `,
     methods: {
         getColorForPercentage: function(pct) {

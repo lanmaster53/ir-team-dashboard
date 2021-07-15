@@ -1,5 +1,6 @@
 #!python3
 
+from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from datetime import datetime, timedelta
@@ -7,8 +8,10 @@ import irsdk
 import json
 import os
 import time
+import traceback
 
 server_url = os.environ.get('API_BASE_URL', 'http://127.0.0.1') + '/api/telemetry'
+polling_interval = os.environ.get('API_POLL_INT', 3) # in seconds
 
 print(server_url)
 
@@ -29,7 +32,7 @@ def check_iracing():
         # we are shutting down ir library (clearing all internal variables)
         ir.shutdown()
         print('irsdk disconnected')
-    elif not state.ir_connected and ir.startup(test_file='data.bin') and ir.is_initialized and ir.is_connected:
+    elif not state.ir_connected and ir.startup() and ir.is_initialized and ir.is_connected:
         state.ir_connected = True
         print('irsdk connected')
 
@@ -45,13 +48,19 @@ def track_lap_data():
         print(f"new lap added: {lap}")
 
 def send_to_server(data):
-    #print(json.dumps(data, indent=4))
     postdata = json.dumps(data).encode()
     headers = {"Content-Type": "application/json; charset=UTF-8"}
     request = Request(server_url, data=postdata, method="POST", headers=headers)
-    with urlopen(request) as response:
-        print(response.code)
-        #print(response.read().decode())
+    try:
+        with urlopen(request) as response:
+            pass
+    except URLError as e:
+        if hasattr(e, 'reason'):
+            print('Error communicating with server.')
+            print('Reason: ', e.reason)
+        elif hasattr(e, 'code'):
+            print('Server failed to fulfill request.')
+            print('Error code: ', e.code)
 
 def seconds_to_time_clock(s):
     delta = timedelta(seconds=s)
@@ -114,28 +123,25 @@ def loop():
             'fuel_laps_remain': '{:.2f} Laps'.format(fuel_laps_remain),
             'fuel_time_remain': seconds_to_time_clock(fuel_time_remain).split('.')[0],
             'tire_wear': {
-                'fl': split_and_strip(ir['CarSetup']['TiresAero']['LeftFront']['TreadRemaining']),
-                'fr': split_and_strip(ir['CarSetup']['TiresAero']['RightFront']['TreadRemaining']),
-                'rl': split_and_strip(ir['CarSetup']['TiresAero']['LeftRear']['TreadRemaining']),
-                'rr': split_and_strip(ir['CarSetup']['TiresAero']['RightFront']['TreadRemaining'])
+                'fl': [ir['LFwearL'], ir['LFwearM'], ir['LFwearR']],
+                'fr': [ir['RFwearL'], ir['RFwearM'], ir['RFwearR']],
+                'rl': [ir['LRwearL'], ir['LRwearM'], ir['LRwearR']],
+                'rr': [ir['RRwearL'], ir['RRwearM'], ir['RRwearR']]
             }
         }
     }
 
     # send the data to the server
-    try:
-        send_to_server(data)
-    except:
-        print('Error communicating with server.')
+    send_to_server(data)
 
 if __name__ == '__main__':
     # initializing ir and state
     ir = irsdk.IRSDK()
     state = State()
 
-    try:
-        # infinite loop
-        while True:
+    # infinite loop
+    while True:
+        try:
             # check if we are connected to iracing
             check_iracing()
             # if we are, then process data
@@ -146,7 +152,9 @@ if __name__ == '__main__':
             # sleep for N seconds
             # maximum you can use is 1/60
             # because iracing updates data with 60 fps
-            time.sleep(3)
-    except KeyboardInterrupt:
-        # press ctrl+c to exit
-        pass
+            time.sleep(polling_interval)
+        except KeyboardInterrupt:
+            # press ctrl+c to exit
+            break
+        except:
+            traceback.print_exc()

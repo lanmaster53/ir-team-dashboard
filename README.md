@@ -1,8 +1,28 @@
 # iR(acing) Team Dashboard
 
-## Docker (Linux)
+## To Do
 
-### Installation
+* Monitor active websocket clients to the web app.
+
+## Agent Installation (Windows / from sources)
+
+1. Install Python 3.
+2. Download the source code repository as a zip.
+    * https://github.com/lanmaster53/ir-team-dashboard/archive/refs/heads/main.zip
+3. Unzip the archive.
+4. Open a command prompt and navigate to the ...\ir-team-dashboard\iragent directory.
+5. Create a virtual environment.
+    * `python -m venv .venv`
+6. Activate the virtual environment.
+    * `.venv\Scripts\activate.bat`
+7. Install dependencies.
+    * `pip3 install -r REQUIREMENTS.txt`
+8. Set the proper environment variables.
+    * `set API_BASE_URL=http://34.75.132.75`
+9. Run the agent.
+    * `python iragent.py`
+
+## Server Installation (Linux / Docker)
 
 1. Create and configure a Google Cloud Compute Engine instance.
     * Use the Container-Optimized OS.

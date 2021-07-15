@@ -15,10 +15,8 @@ class TelemetryList(Resource):
 
     def post(self):
         '''Collects telemetry from client agents.'''
-        #print(json.dumps(request.json, indent=4))
         socketio.emit('newTelemetry', request.json)
         return Response(None, 204)
-        #return {'status': 'success'}, 201
 
 api.add_resource(TelemetryList, '/telemetry')
 
