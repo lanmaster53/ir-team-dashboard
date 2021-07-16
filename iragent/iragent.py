@@ -1,7 +1,6 @@
 #!python3
 
 from urllib.error import URLError
-from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from datetime import datetime, timedelta
 import argparse
@@ -13,6 +12,7 @@ import traceback
 parser = argparse.ArgumentParser()
 parser.add_argument("--url", "-u", help="server API URL", required=True)
 parser.add_argument("--int", "-i", help="telemetry polling interval", type=int, default=3)
+parser.add_argument("--avg", "-a", help="# of laps for calculating averages", type=int, default=1000)
 parser.add_argument("--data", "-d", help="telemetry test file", default=None)
 args = parser.parse_args()
 
@@ -24,9 +24,17 @@ print(f"Sending telemetry data to {server_url} every {polling_interval} seconds.
 # this is our State class, with some helpful variables
 class State:
     ir_connected = False
-    last_car_setup_tick = -1
-    laps = []
-    last_lap = 0
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.last_car_setup_tick = -1
+        self.laps = []
+        self.last_lap = 0
+        self.last_laps_complete = 0
+        self.last_lap_fuel_level = 0
+        self.session_num = None
 
 # here we check if we are connected to iracing
 # so we can retrieve some data
@@ -34,7 +42,7 @@ def check_iracing():
     if state.ir_connected and not (ir.is_initialized and ir.is_connected):
         state.ir_connected = False
         # don't forget to reset your State variables
-        state.last_car_setup_tick = -1
+        state.reset()
         # we are shutting down ir library (clearing all internal variables)
         ir.shutdown()
         print('irsdk disconnected')
@@ -42,15 +50,29 @@ def check_iracing():
         state.ir_connected = True
         print('irsdk connected')
 
-def track_lap_data():
-    last_lap = ir['LapCompleted']
-    if last_lap > state.last_lap:
+def track_lap_data(result):
+    last_lap = result["Lap"]
+    last_laps_complete = result["LapsComplete"]
+    # detect new lap
+    # https://members.iracing.com/jforum/posts/list/1700/1470675.page#9182663
+    # https://members.iracing.com/jforum/posts/list/1332280.page#2858801
+    if last_lap != state.last_lap or last_laps_complete != state.last_laps_complete:
+        print(f"lap: {last_lap}|{state.last_lap}, completed: {last_laps_complete}|{state.last_laps_complete}")
+        # store lap data
+        lap_time = result["LastTime"]
+        is_valid = False
+        if lap_time > 0:
+            is_valid = True
         lap = {
             'lap': last_lap,
-            'time': ir['LapLastLapTime'],
+            'time': lap_time,
+            'valid': is_valid,
+            'fuel_used': state.last_lap_fuel_level - ir['FuelLevel']
         }
         state.laps.append(lap)
         state.last_lap = last_lap
+        state.last_laps_complete = last_laps_complete
+        state.last_lap_fuel_level = ir['FuelLevel']
         print(f"new lap added: {lap}")
 
 def send_to_server(data):
@@ -85,19 +107,32 @@ def loop():
 
     # freeze the buffer with live telemetry
     ir.freeze_var_buffer_latest()
+
+    # check for new session
+    if state.session_num != ir['SessionNum']:
+        print(f"new session detected: {ir['SessionNum']}")
+        # reset state for new session
+        state.reset()
+        state.session_num = ir['SessionNum']
+        state.last_lap_fuel_level = ir['FuelLevel']
+
+    # resolve relevant property arrays from telemetry
+    driver = next(d for d in ir['DriverInfo']['Drivers'] if d['CarIdx'] == ir['DriverInfo']['DriverCarIdx'])
+    session = next(s for s in ir['SessionInfo']['Sessions'] if s['SessionNum'] == ir['SessionNum'])
+    result = next(r for r in session["ResultsPositions"] if r['CarIdx'] == ir["DriverInfo"]["DriverCarIdx"])
+
     # update lap data
-    track_lap_data()
+    # must happen after the result property array has set
+    track_lap_data(result)
 
     # calculate additional telemetry properties
-    team_id = f"{ir['WeekendInfo']['SessionID']}-{ir['WeekendInfo']['SubSessionID']}-{ir['PlayerCarIdx']}"
-    driver = next(item for item in ir['DriverInfo']['Drivers'] if item['CarIdx'] == ir['DriverInfo']['DriverCarIdx'])
-    lap_time_avg = sum([l['time'] for l in state.laps]) / len(state.laps) if state.laps else 0
+    team_id = f"{ir['WeekendInfo']['SessionID']}-{ir['WeekendInfo']['SubSessionID']}-{ir['DriverInfo']['DriverCarIdx']}"
+    valid_laps = [lap for lap in state.laps if lap['valid']][-(args.avg):]
+    lap_time_avg = sum([lap['time'] for lap in valid_laps]) / len(valid_laps) if valid_laps else 0
     time_laps_remain = ir['SessionTimeRemain'] / lap_time_avg if lap_time_avg else 0
-    fuel_capacity_max = ir['DriverInfo']['DriverCarFuelMaxLtr'] * ir['DriverInfo']['DriverCarMaxFuelPct']
-    fuel_burn_avg = (fuel_capacity_max - ir['FuelLevel']) / len(state.laps) if state.laps else 0
+    fuel_burn_avg = sum([i['fuel_used'] for i in valid_laps]) / len(valid_laps)
     fuel_laps_remain = ir['FuelLevel'] / fuel_burn_avg if fuel_burn_avg else 0
     fuel_time_remain = fuel_laps_remain * lap_time_avg
-    session = next(item for item in ir['SessionInfo']['Sessions'] if item['SessionNum'] == ir['SessionNum'])
 
     # build the data object for the server
     data = {
@@ -120,13 +155,11 @@ def loop():
             'time_remain': seconds_to_time_clock(ir['SessionTimeRemain'])
         },
         'telemetry': {
-            'laps_completed': ir['LapCompleted'],
+            'laps_completed': result['LapsComplete'],
             'avg_lap_time': seconds_to_time_lap(lap_time_avg),
-            'last_lap_time': seconds_to_time_lap(ir['LapLastLapTime']),
-            'best_lap_time': seconds_to_time_lap(ir['LapBestLapTime']),
+            'last_lap_time': seconds_to_time_lap(result['LastTime']),
+            'best_lap_time': seconds_to_time_lap(result['FastestTime']),
             'time_laps_remain': '{:.2f}'.format(time_laps_remain),
-            'class_gap_ahead': '-XX.XXX',
-            'class_gap_behind': '-XX.XXX',
             'fuel_remain': '{:.2f} L'.format(ir['FuelLevel']),
             'fuel_burn_avg': '{:.3f} L/Lap'.format(fuel_burn_avg),
             'fuel_laps_remain': '{:.2f} Laps'.format(fuel_laps_remain),

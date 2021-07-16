@@ -2,7 +2,6 @@ from flask import Blueprint, request, Response
 from flask_restful import Resource, Api
 from flask_socketio import emit
 from irteamdash import socketio
-import json
 import traceback
 
 resources = Blueprint('resources', __name__)
