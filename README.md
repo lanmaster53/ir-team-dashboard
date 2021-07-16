@@ -9,7 +9,8 @@ Notes: This is the easiest way to deploy the agent. Most users shouldn't look an
 3. Navigate to the directory containing the agent.
 4. Execute the agent.
     * `iragent.exe -u <server_url>`
-    * By default, the polling rate is every 3 seconds. This can be changed using the `-i <#>` switch.
+    * By default, the polling rate is every 3 seconds. This can be changed using the `--int <#>` or `-i <#>` switch. The lower the polling interval, the more accurate the data, but also the more resources it will consume on the system.
+    * By default, averages within the dashboard (fuel, timing, etc.) are calculated based on all valid laps. This can be changed using the `--avg <#>` or `-a <#>` switch.
     * Note that the agent will report being unable to communicate with iRacing until a session has started and telemetry is being produced.
 5. When done, go back to the command prompt and press CTRL+C to kill the script.
 6. If there were any errors, copy them out of the command prompt and send them to me.
