@@ -1,8 +1,18 @@
 # iR(acing) Team Dashboard
 
-## To Do
+## Agent Usage (Compiled Binary)
 
-* Monitor active websocket clients to the web app.
+Notes: This is the easiest way to deploy the agent. Most users shouldn't look any further than this section.
+
+1. Download the agent file from https://github.com/lanmaster53/ir-team-dashboard/raw/main/iragent/iragent.exe.
+2. Open a command prompt (cmd.exe).
+3. Navigate to the directory containing the agent.
+4. Execute the agent.
+    * `iragent.exe -u <server_url>`
+    * By default, the polling rate is every 3 seconds. This can be changed using the `-i <#>` switch.
+    * Note that the agent will report being unable to communicate with iRacing until a session has started and telemetry is being produced.
+5. When done, go back to the command prompt and press CTRL+C to kill the script.
+6. If there were any errors, copy them out of the command prompt and send them to me.
 
 ## Agent Installation (Windows / from sources)
 
