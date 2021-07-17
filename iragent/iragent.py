@@ -62,12 +62,12 @@ def track_lap_data(result):
         lap_time = result["LastTime"]
         fuel_used = state.last_lap_fuel_level - ir['FuelLevel']
         valid = True
-        if not all(
+        if not all([
                 # odd lap times such as -1.0 when exiting to pit mid run
                 lap_time > 0,
                 # odd fuel usage such as below zero the lap after fueling
                 fuel_used > 0
-            ):
+            ]):
             valid = False
         lap = {
             'lap': last_laps_complete,
@@ -125,8 +125,11 @@ def loop():
     # resolve relevant property arrays from telemetry
     driver = next(d for d in ir['DriverInfo']['Drivers'] if d['CarIdx'] == ir['DriverInfo']['DriverCarIdx'])
     session = next(s for s in ir['SessionInfo']['Sessions'] if s['SessionNum'] == ir['SessionNum'])
-    # results won't exist until someone has completed a lap, same for individual driver
-    result = next((r for r in session.get('ResultsPositions', []) if r['CarIdx'] == ir['DriverInfo']['DriverCarIdx']), None)
+    # results won't exist until someone has completed a lap
+    result = None
+    if session.get('ResultsPositions'):
+        # current driver results won't exist until they have finished a lap
+        result = next((r for r in session['ResultsPositions'] if r['CarIdx'] == ir['DriverInfo']['DriverCarIdx']), None)
 
     # update lap data
     if result:
