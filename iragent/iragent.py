@@ -64,7 +64,7 @@ def track_lap_data(result):
         if lap_time > 0:
             is_valid = True
         lap = {
-            'lap': last_lap,
+            'lap': last_laps_complete,
             'time': lap_time,
             'valid': is_valid,
             'fuel_used': state.last_lap_fuel_level - ir['FuelLevel']
@@ -119,18 +119,19 @@ def loop():
     # resolve relevant property arrays from telemetry
     driver = next(d for d in ir['DriverInfo']['Drivers'] if d['CarIdx'] == ir['DriverInfo']['DriverCarIdx'])
     session = next(s for s in ir['SessionInfo']['Sessions'] if s['SessionNum'] == ir['SessionNum'])
-    result = next(r for r in session["ResultsPositions"] if r['CarIdx'] == ir["DriverInfo"]["DriverCarIdx"])
+    # results won't exist until someone has completed a lap, same for individual driver
+    result = next((r for r in session.get('ResultsPositions', []) if r['CarIdx'] == ir['DriverInfo']['DriverCarIdx']), None)
 
     # update lap data
-    # must happen after the result property array has set
-    track_lap_data(result)
+    if result:
+        track_lap_data(result)
 
     # calculate additional telemetry properties
     team_id = f"{ir['WeekendInfo']['SessionID']}-{ir['WeekendInfo']['SubSessionID']}-{ir['DriverInfo']['DriverCarIdx']}"
     valid_laps = [lap for lap in state.laps if lap['valid']][-(args.avg):]
     lap_time_avg = sum([lap['time'] for lap in valid_laps]) / len(valid_laps) if valid_laps else 0
     time_laps_remain = ir['SessionTimeRemain'] / lap_time_avg if lap_time_avg else 0
-    fuel_burn_avg = sum([i['fuel_used'] for i in valid_laps]) / len(valid_laps)
+    fuel_burn_avg = sum([i['fuel_used'] for i in valid_laps]) / len(valid_laps) if valid_laps else 0
     fuel_laps_remain = ir['FuelLevel'] / fuel_burn_avg if fuel_burn_avg else 0
     fuel_time_remain = fuel_laps_remain * lap_time_avg
 
@@ -155,10 +156,10 @@ def loop():
             'time_remain': seconds_to_time_clock(ir['SessionTimeRemain'])
         },
         'telemetry': {
-            'laps_completed': result['LapsComplete'],
+            'laps_completed': result['LapsComplete'] if result else 0,
             'avg_lap_time': seconds_to_time_lap(lap_time_avg),
-            'last_lap_time': seconds_to_time_lap(result['LastTime']),
-            'best_lap_time': seconds_to_time_lap(result['FastestTime']),
+            'last_lap_time': seconds_to_time_lap(result['LastTime']) if result else 0,
+            'best_lap_time': seconds_to_time_lap(result['FastestTime']) if result else 0,
             'time_laps_remain': '{:.2f}'.format(time_laps_remain),
             'fuel_remain': '{:.2f} L'.format(ir['FuelLevel']),
             'fuel_burn_avg': '{:.3f} L/Lap'.format(fuel_burn_avg),
