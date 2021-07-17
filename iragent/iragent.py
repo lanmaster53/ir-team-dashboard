@@ -60,14 +60,20 @@ def track_lap_data(result):
         print(f"lap: {last_lap}|{state.last_lap}, completed: {last_laps_complete}|{state.last_laps_complete}")
         # store lap data
         lap_time = result["LastTime"]
-        is_valid = False
-        if lap_time > 0:
-            is_valid = True
+        fuel_used = state.last_lap_fuel_level - ir['FuelLevel']
+        valid = True
+        if not all(
+                # odd lap times such as -1.0 when exiting to pit mid run
+                lap_time > 0,
+                # odd fuel usage such as below zero the lap after fueling
+                fuel_used > 0
+            ):
+            valid = False
         lap = {
             'lap': last_laps_complete,
             'time': lap_time,
-            'valid': is_valid,
-            'fuel_used': state.last_lap_fuel_level - ir['FuelLevel']
+            'fuel_used': state.last_lap_fuel_level - ir['FuelLevel'],
+            'valid': valid
         }
         state.laps.append(lap)
         state.last_lap = last_lap
